@@ -425,15 +425,15 @@
       btn.innerHTML = '<span class="spinner"></span> Memverifikasi...';
 
       try {
-        const resp = await fetch(CONFIG.APPS_SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'verify', nama, password }),
-        });
+        const url = CONFIG.APPS_SCRIPT_URL
+          + '?action=verify'
+          + '&nama=' + encodeURIComponent(nama)
+          + '&password=' + encodeURIComponent(password);
+        const resp = await fetch(url);
         const data = await resp.json();
 
         if (data.status === 'ok') {
-          pesertaDitemukan = data.peserta; // { nama, perwalian }
+          pesertaDitemukan = data.peserta;
           tampilkanModal(data.peserta);
         } else {
           errEl.textContent = data.message || 'Nama atau password tidak valid.';
@@ -466,17 +466,12 @@
       btn.innerHTML = '<span class="spinner"></span> Menyimpan...';
 
       try {
-        const resp = await fetch(CONFIG.APPS_SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action:     'absen',
-            nama:       pesertaDitemukan.nama,
-            perwalian:  pesertaDitemukan.perwalian,
-            waktu:      new Date().toLocaleString('id-ID'),
-            event:      CONFIG.NAMA_EVENT,
-          }),
-        });
+        const url = CONFIG.APPS_SCRIPT_URL
+          + '?action=absen'
+          + '&nama='      + encodeURIComponent(pesertaDitemukan.nama)
+          + '&perwalian=' + encodeURIComponent(pesertaDitemukan.perwalian || '')
+          + '&event='     + encodeURIComponent(CONFIG.NAMA_EVENT);
+        const resp = await fetch(url);
         const data = await resp.json();
 
         tutupModal();
