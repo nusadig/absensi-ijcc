@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Absensi IJCC Aichi</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:    #1a7f4b;
+      --green-dk: #145f38;
+      --green-lt: #e8f5ee;
+      --accent:   #f0a500;
+      --gray-50:  #f9fafb;
+      --gray-200: #e5e7eb;
+      --gray-400: #9ca3af;
+      --gray-600: #4b5563;
+      --gray-800: #1f2937;
+      --white:    #ffffff;
+      --radius:   14px;
+      --shadow:   0 8px 32px rgba(0,0,0,.12);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(145deg, #0d4a2a 0%, #1a7f4b 55%, #2ea96a 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    /* ── CARD ─────────────────────────────────── */
+    .card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 420px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      background: var(--green);
+      padding: 28px 32px 24px;
+      text-align: center;
+    }
+    .logo-ring {
+      width: 64px; height: 64px;
+      border: 3px solid rgba(255,255,255,.35);
+      border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-bottom: 14px;
+    }
+    .logo-ring svg { width: 34px; height: 34px; fill: white; }
+
+    .card-header h1 {
+      color: white;
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -.01em;
+    }
+    .card-header p {
+      color: rgba(255,255,255,.75);
+      font-size: .8rem;
+      margin-top: 4px;
+    }
+
+    .event-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 999px;
+      padding: 4px 12px;
+      color: white;
+      font-size: .75rem;
+      margin-top: 10px;
+    }
+    .event-badge span { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
+
+    .card-body { padding: 28px 32px 32px; }
+
+    /* ── FORM ─────────────────────────────────── */
+    .field { margin-bottom: 18px; }
+    label {
+      display: block;
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--gray-600);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 10px;
+      font-size: .95rem;
+      font-family: 'Inter', sans-serif;
+      color: var(--gray-800);
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+    }
+    input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(26,127,75,.12);
+    }
+    input::placeholder { color: var(--gray-400); }
+
+    .hint {
+      font-size: .72rem;
+      color: var(--gray-400);
+      margin-top: 5px;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: var(--green);
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+      margin-top: 6px;
+      letter-spacing: .01em;
+    }
+    .btn-submit:hover  { background: var(--green-dk); }
+    .btn-submit:active { transform: scale(.98); }
+    .btn-submit:disabled { background: var(--gray-400); cursor: not-allowed; }
+
+    .error-msg {
+      display: none;
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      border-radius: 8px;
+      color: #b91c1c;
+      font-size: .82rem;
+      padding: 10px 14px;
+      margin-bottom: 14px;
+    }
+    .error-msg.show { display: block; }
+
+    /* ── MODAL ────────────────────────────────── */
+    .overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.45);
+      backdrop-filter: blur(3px);
+      align-items: center; justify-content: center;
+      z-index: 100;
+      padding: 16px;
+    }
+    .overlay.show { display: flex; }
+
+    .modal {
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+      width: 100%;
+      max-width: 360px;
+      padding: 32px 28px;
+      text-align: center;
+      animation: popIn .25s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes popIn {
+      from { transform: scale(.85); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    .modal-icon {
+      width: 64px; height: 64px;
+      background: var(--green-lt);
+      border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-bottom: 18px;
+    }
+    .modal-icon svg { width: 32px; height: 32px; stroke: var(--green); fill: none; stroke-width: 2.5; }
+
+    .modal h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--gray-800);
+      margin-bottom: 6px;
+    }
+    .modal .sub {
+      font-size: .85rem;
+      color: var(--gray-600);
+      margin-bottom: 8px;
+    }
+    .modal .perwalian-tag {
+      display: inline-block;
+      background: var(--green-lt);
+      color: var(--green-dk);
+      border-radius: 6px;
+      padding: 4px 12px;
+      font-size: .8rem;
+      font-weight: 600;
+      margin-bottom: 22px;
+    }
+    .modal-divider { border: none; border-top: 1px solid var(--gray-200); margin-bottom: 20px; }
+
+    .btn-hadir {
+      width: 100%;
+      padding: 15px;
+      background: var(--green);
+      color: white;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      letter-spacing: .03em;
+      transition: background .2s, transform .1s;
+    }
+    .btn-hadir:hover  { background: var(--green-dk); }
+    .btn-hadir:active { transform: scale(.97); }
+    .btn-hadir:disabled { background: var(--gray-400); cursor: not-allowed; }
+
+    .btn-batal {
+      margin-top: 10px;
+      background: none;
+      border: none;
+      color: var(--gray-400);
+      font-size: .82rem;
+      cursor: pointer;
+      width: 100%;
+      padding: 6px;
+    }
+    .btn-batal:hover { color: var(--gray-600); }
+
+    /* ── SUCCESS ──────────────────────────────── */
+    .success-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: linear-gradient(145deg, #0d4a2a, #1a7f4b);
+      align-items: center; justify-content: center;
+      z-index: 200;
+      flex-direction: column;
+      text-align: center;
+      padding: 32px;
+    }
+    .success-overlay.show { display: flex; }
+
+    .checkmark-circle {
+      width: 90px; height: 90px;
+      background: rgba(255,255,255,.15);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 24px;
+      border: 3px solid rgba(255,255,255,.4);
+    }
+    .checkmark-circle svg { width: 46px; height: 46px; stroke: white; fill: none; stroke-width: 3; }
+
+    .success-overlay h2 { color: white; font-size: 1.6rem; font-weight: 700; margin-bottom: 8px; }
+    .success-overlay p  { color: rgba(255,255,255,.8); font-size: .9rem; max-width: 280px; line-height: 1.5; }
+
+    .success-name {
+      color: var(--accent);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 14px 0 4px;
+    }
+    .success-time {
+      color: rgba(255,255,255,.65);
+      font-size: .8rem;
+      margin-bottom: 32px;
+    }
+
+    .btn-selesai {
+      padding: 12px 36px;
+      background: white;
+      color: var(--green-dk);
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: .95rem;
+      transition: transform .15s;
+    }
+    .btn-selesai:hover { transform: scale(1.04); }
+
+    /* ── LOADING SPINNER ──────────────────────── */
+    .spinner {
+      display: inline-block;
+      width: 18px; height: 18px;
+      border: 2.5px solid rgba(255,255,255,.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── FOOTER ───────────────────────────────── */
+    .card-footer {
+      text-align: center;
+      margin-top: 16px;
+    }
+    .card-footer a {
+      color: rgba(255,255,255,.6);
+      font-size: .75rem;
+      text-decoration: none;
+    }
+    .card-footer a:hover { color: white; }
+  </style>
+</head>
+<body>
+
+  <!-- MAIN CARD -->
+  <div class="card">
+    <div class="card-header">
+      <div class="logo-ring">
+        <!-- Football icon -->
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-5h2v2h-2zm0-8h2v6h-2z"/>
+        </svg>
+      </div>
+      <h1>IJCC AICHI</h1>
+      <p>Sistem Absensi Digital</p>
+      <div class="event-badge">
+        <span></span>
+        <span id="tanggal-header">Memuat...</span>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="error-msg" id="errorMsg">Nama atau password tidak valid. Periksa kembali.</div>
+
+      <div class="field">
+        <label for="nama">Nama Lengkap</label>
+        <input type="text" id="nama" placeholder="Tulis nama lengkap Anda" autocomplete="off" />
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Tanggal lahir (cth: 15081990)" />
+        <div class="hint">Format: DDMMYYYY &nbsp;·&nbsp; contoh: 15081990</div>
+      </div>
+
+      <button class="btn-submit" id="btnVerify" onclick="verifyPeserta()">
+        Verifikasi &amp; Lanjut
+      </button>
+    </div>
+  </div>
+
+  <div class="card-footer">
+    <a href="admin.html">🔒 Halaman Admin</a>
+  </div>
+
+  <!-- KONFIRMASI MODAL -->
+  <div class="overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-icon">
+        <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <h2 id="modalNama">—</h2>
+      <p class="sub">Perwalian / Kelompok</p>
+      <div class="perwalian-tag" id="modalPerwalian">—</div>
+      <hr class="modal-divider" />
+      <button class="btn-hadir" id="btnHadir" onclick="konfirmasiHadir()">✓ &nbsp;HADIR</button>
+      <button class="btn-batal" onclick="tutupModal()">Batal</button>
+    </div>
+  </div>
+
+  <!-- SUCCESS SCREEN -->
+  <div class="success-overlay" id="successOverlay">
+    <div class="checkmark-circle">
+      <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+    </div>
+    <h2>Absensi Berhasil!</h2>
+    <div class="success-name" id="successNama">—</div>
+    <div class="success-time" id="successTime">—</div>
+    <p>Data kehadiran Anda telah tercatat. Terima kasih!</p>
+    <br />
+    <button class="btn-selesai" onclick="selesai()">Selesai</button>
+  </div>
+
+  <script>
+    // ════════════════════════════════════════════════
+    //  KONFIGURASI — isi sesuai kebutuhan Anda
+    // ════════════════════════════════════════════════
+    const CONFIG = {
+      // URL Google Apps Script Web App Anda (lihat SETUP.md)
+      APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycby_TftC2UA3QBUWC-g7zVu43lxxwrI8NWz4F9wByoTwBD2LLxXENXppXFXj7T8s3Zs/exec",
+
+      // Nama event / pertemuan
+      NAMA_EVENT: "Latihan Rutin IJCC Aichi",
+    };
+
+    // ── Tampilkan tanggal hari ini ────────────────
+    const now = new Date();
+    const opsiTgl = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
+    document.getElementById('tanggal-header').textContent =
+      now.toLocaleDateString('id-ID', opsiTgl);
+
+    // ── State ─────────────────────────────────────
+    let pesertaDitemukan = null;
+
+    // ── Verifikasi peserta ke Apps Script ─────────
+    async function verifyPeserta() {
+      const nama     = document.getElementById('nama').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const errEl    = document.getElementById('errorMsg');
+      const btn      = document.getElementById('btnVerify');
+
+      errEl.classList.remove('show');
+
+      if (!nama || !password) {
+        errEl.textContent = 'Nama lengkap dan password wajib diisi.';
+        errEl.classList.add('show');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Memverifikasi...';
+
+      try {
+        const resp = await fetch(CONFIG.APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'verify', nama, password }),
+        });
+        const data = await resp.json();
+
+        if (data.status === 'ok') {
+          pesertaDitemukan = data.peserta; // { nama, perwalian }
+          tampilkanModal(data.peserta);
+        } else {
+          errEl.textContent = data.message || 'Nama atau password tidak valid.';
+          errEl.classList.add('show');
+        }
+      } catch (e) {
+        errEl.textContent = 'Gagal menghubungi server. Periksa koneksi internet.';
+        errEl.classList.add('show');
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Verifikasi & Lanjut';
+    }
+
+    // ── Tampilkan modal konfirmasi ─────────────────
+    function tampilkanModal(peserta) {
+      document.getElementById('modalNama').textContent      = peserta.nama;
+      document.getElementById('modalPerwalian').textContent = peserta.perwalian || 'Umum';
+      document.getElementById('modalOverlay').classList.add('show');
+    }
+
+    function tutupModal() {
+      document.getElementById('modalOverlay').classList.remove('show');
+    }
+
+    // ── Kirim kehadiran ke Apps Script ────────────
+    async function konfirmasiHadir() {
+      const btn = document.getElementById('btnHadir');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Menyimpan...';
+
+      try {
+        const resp = await fetch(CONFIG.APPS_SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action:     'absen',
+            nama:       pesertaDitemukan.nama,
+            perwalian:  pesertaDitemukan.perwalian,
+            waktu:      new Date().toLocaleString('id-ID'),
+            event:      CONFIG.NAMA_EVENT,
+          }),
+        });
+        const data = await resp.json();
+
+        tutupModal();
+
+        if (data.status === 'ok') {
+          tampilkanSukses();
+        } else {
+          alert('Gagal menyimpan: ' + (data.message || 'Error tidak diketahui'));
+        }
+      } catch (e) {
+        alert('Gagal menghubungi server. Coba lagi.');
+      }
+
+      btn.disabled = false;
+      btn.textContent = '✓  HADIR';
+    }
+
+    // ── Tampilkan sukses ──────────────────────────
+    function tampilkanSukses() {
+      document.getElementById('successNama').textContent =
+        pesertaDitemukan.nama + ' · ' + (pesertaDitemukan.perwalian || 'Umum');
+      document.getElementById('successTime').textContent =
+        'Tercatat: ' + new Date().toLocaleString('id-ID');
+      document.getElementById('successOverlay').classList.add('show');
+    }
+
+    // ── Reset form setelah selesai ────────────────
+    function selesai() {
+      document.getElementById('successOverlay').classList.remove('show');
+      document.getElementById('nama').value     = '';
+      document.getElementById('password').value = '';
+      pesertaDitemukan = null;
+    }
+
+    // Enter key shortcut
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !document.getElementById('modalOverlay').classList.contains('show'))
+        verifyPeserta();
+    });
+  </script>
+</body>
+</html>

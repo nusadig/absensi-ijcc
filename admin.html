@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Absensi IJCC Aichi</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:    #1a7f4b;
+      --green-dk: #145f38;
+      --green-lt: #e8f5ee;
+      --accent:   #f0a500;
+      --gray-50:  #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-400: #9ca3af;
+      --gray-600: #4b5563;
+      --gray-800: #1f2937;
+      --white:    #ffffff;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--gray-50);
+      color: var(--gray-800);
+      min-height: 100vh;
+    }
+
+    /* ── TOP BAR ──────────────────────────── */
+    .topbar {
+      background: var(--green);
+      padding: 16px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar h1 { color: white; font-size: 1rem; font-weight: 700; }
+    .topbar p  { color: rgba(255,255,255,.7); font-size: .75rem; }
+    .badge-live {
+      display: flex; align-items: center; gap: 5px;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 999px;
+      padding: 4px 10px;
+      color: white; font-size: .72rem;
+    }
+    .badge-live .dot {
+      width: 7px; height: 7px;
+      background: #4ade80;
+      border-radius: 50%;
+      animation: pulse 1.4s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; } 50% { opacity: .4; }
+    }
+
+    /* ── LOGIN GATE ───────────────────────── */
+    .login-wrap {
+      display: flex; align-items: center; justify-content: center;
+      min-height: calc(100vh - 64px);
+      padding: 24px;
+    }
+    .login-card {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.1);
+      padding: 36px 32px;
+      width: 100%; max-width: 360px;
+      text-align: center;
+    }
+    .login-card h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
+    .login-card p  { font-size: .82rem; color: var(--gray-400); margin-bottom: 24px; }
+
+    input[type="password"], input[type="text"] {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 10px;
+      font-size: .9rem;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      margin-bottom: 12px;
+    }
+    input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(26,127,75,.12);
+    }
+
+    .btn-green {
+      width: 100%;
+      padding: 12px;
+      background: var(--green);
+      color: white; font-size: .9rem; font-weight: 600;
+      border: none; border-radius: 10px; cursor: pointer;
+      transition: background .2s;
+    }
+    .btn-green:hover { background: var(--green-dk); }
+    .login-error {
+      color: #b91c1c; font-size: .8rem; margin-top: 8px;
+      display: none;
+    }
+
+    /* ── DASHBOARD ────────────────────────── */
+    #dashboard { display: none; padding: 24px; }
+
+    /* Stat cards */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+    .stat-card .num {
+      font-size: 2rem; font-weight: 700;
+      color: var(--green);
+      line-height: 1;
+    }
+    .stat-card .lbl {
+      font-size: .75rem; color: var(--gray-400);
+      margin-top: 4px; font-weight: 500;
+    }
+
+    /* Filter & search */
+    .toolbar {
+      display: flex; gap: 10px; flex-wrap: wrap;
+      margin-bottom: 16px; align-items: center;
+    }
+    .toolbar input[type="text"] {
+      flex: 1; min-width: 160px;
+      margin-bottom: 0;
+      padding: 9px 12px; font-size: .85rem;
+    }
+    .btn-refresh {
+      padding: 9px 16px;
+      background: var(--green-lt);
+      color: var(--green-dk);
+      border: 1px solid #a7d9bc;
+      border-radius: 10px; cursor: pointer;
+      font-size: .82rem; font-weight: 600;
+      white-space: nowrap;
+      transition: background .2s;
+    }
+    .btn-refresh:hover { background: #c7ecd8; }
+    .btn-export {
+      padding: 9px 16px;
+      background: var(--accent);
+      color: white; border: none;
+      border-radius: 10px; cursor: pointer;
+      font-size: .82rem; font-weight: 600;
+      white-space: nowrap;
+      transition: background .2s;
+    }
+    .btn-export:hover { background: #d4900a; }
+
+    /* Table */
+    .table-wrap {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      overflow: hidden;
+    }
+    .table-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .table-header h3 { font-size: .9rem; font-weight: 600; }
+    .table-header span { font-size: .78rem; color: var(--gray-400); }
+
+    table {
+      width: 100%; border-collapse: collapse;
+      font-size: .85rem;
+    }
+    thead { background: var(--gray-50); }
+    th {
+      padding: 10px 18px;
+      text-align: left;
+      font-size: .72rem; font-weight: 600;
+      color: var(--gray-400);
+      text-transform: uppercase; letter-spacing: .05em;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    td {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--gray-100);
+      color: var(--gray-800);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--gray-50); }
+
+    .badge-hadir {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: var(--green-lt);
+      color: var(--green-dk);
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: .75rem; font-weight: 600;
+    }
+    .badge-hadir::before {
+      content: '✓';
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--gray-400);
+    }
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 10px; }
+    .empty-state p { font-size: .85rem; }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(26,127,75,.3);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #loadingRow td { text-align: center; color: var(--gray-400); padding: 40px; }
+
+    @media (max-width: 480px) {
+      #dashboard { padding: 16px; }
+      td, th { padding: 10px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <div>
+        <h1>⚽ IJCC AICHI — Admin Absensi</h1>
+        <p id="tgl-topbar">Memuat...</p>
+      </div>
+    </div>
+    <div class="badge-live"><span class="dot"></span> Live</div>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="login-wrap" id="loginWrap">
+    <div class="login-card">
+      <h2>🔒 Login Admin</h2>
+      <p>Hanya untuk pengurus IJCC Aichi</p>
+      <input type="text" id="adminUser" placeholder="Username admin" />
+      <input type="password" id="adminPass" placeholder="Password admin" />
+      <button class="btn-green" onclick="loginAdmin()">Masuk</button>
+      <div class="login-error" id="loginErr">Username atau password salah.</div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="num" id="statHadir">—</div>
+        <div class="lbl">Hadir Hari Ini</div>
+      </div>
+      <div class="stat-card">
+        <div class="num" id="statTotal">—</div>
+        <div class="lbl">Total Peserta</div>
+      </div>
+      <div class="stat-card">
+        <div class="num" id="statPct">—</div>
+        <div class="lbl">% Kehadiran</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <input type="text" id="searchInput" placeholder="🔍 Cari nama atau perwalian..." oninput="filterTable()" />
+      <button class="btn-refresh" onclick="muatData()">⟳ Refresh</button>
+      <button class="btn-export" onclick="exportCSV()">⬇ Export CSV</button>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header">
+        <h3>Daftar Hadir</h3>
+        <span id="lastUpdate">—</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nama</th>
+            <th>Perwalian</th>
+            <th>Waktu Absen</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr id="loadingRow"><td colspan="5"><span class="spinner"></span> Memuat data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // ════════════════════════════════════════════════
+    //  KONFIGURASI — samakan dengan index.html
+    // ════════════════════════════════════════════════
+    const CONFIG = {
+      APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycby_TftC2UA3QBUWC-g7zVu43lxxwrI8NWz4F9wByoTwBD2LLxXENXppXFXj7T8s3Zs/exec",
+
+      // Akun admin (bisa tambah lebih banyak)
+      ADMINS: [
+        { user: "admin1", pass: "ijcc2024" },
+        { user: "admin2", pass: "aichi123" },
+        { user: "admin3", pass: "admin999" },
+      ],
+    };
+
+    // Tanggal di topbar
+    const now = new Date();
+    document.getElementById('tgl-topbar').textContent =
+      now.toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+    // ── Login Admin ────────────────────────────
+    function loginAdmin() {
+      const u = document.getElementById('adminUser').value.trim();
+      const p = document.getElementById('adminPass').value.trim();
+      const valid = CONFIG.ADMINS.find(a => a.user === u && a.pass === p);
+      if (valid) {
+        document.getElementById('loginWrap').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        muatData();
+      } else {
+        document.getElementById('loginErr').style.display = 'block';
+      }
+    }
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') loginAdmin();
+    });
+
+    // ── Data lokal untuk filter ────────────────
+    let semuaData = [];
+
+    // ── Muat data dari Apps Script ─────────────
+    async function muatData() {
+      document.getElementById('tableBody').innerHTML =
+        '<tr id="loadingRow"><td colspan="5"><span class="spinner"></span> Memuat...</td></tr>';
+
+      try {
+        const resp = await fetch(CONFIG.APPS_SCRIPT_URL + '?action=getAbsensi&date=' +
+          now.toLocaleDateString('id-ID'));
+        const data = await resp.json();
+
+        semuaData = data.rows || [];
+        renderTable(semuaData);
+
+        // Stats
+        const total = data.totalPeserta || 0;
+        const hadir = semuaData.length;
+        document.getElementById('statHadir').textContent  = hadir;
+        document.getElementById('statTotal').textContent  = total;
+        document.getElementById('statPct').textContent    = total ? Math.round(hadir/total*100)+'%' : '—';
+        document.getElementById('lastUpdate').textContent =
+          'Update: ' + new Date().toLocaleTimeString('id-ID');
+
+      } catch (e) {
+        document.getElementById('tableBody').innerHTML =
+          '<tr><td colspan="5" style="text-align:center;color:#b91c1c;padding:32px">Gagal memuat data. Periksa koneksi.</td></tr>';
+      }
+    }
+
+    // ── Render tabel ───────────────────────────
+    function renderTable(rows) {
+      const tbody = document.getElementById('tableBody');
+      if (!rows.length) {
+        tbody.innerHTML = `<tr><td colspan="5">
+          <div class="empty-state">
+            <div class="icon">📋</div>
+            <p>Belum ada yang absen hari ini.</p>
+          </div></td></tr>`;
+        return;
+      }
+      tbody.innerHTML = rows.map((r, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td><strong>${r.nama}</strong></td>
+          <td>${r.perwalian || '—'}</td>
+          <td>${r.waktu || '—'}</td>
+          <td><span class="badge-hadir">Hadir</span></td>
+        </tr>
+      `).join('');
+    }
+
+    // ── Filter / Search ────────────────────────
+    function filterTable() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = semuaData.filter(r =>
+        r.nama?.toLowerCase().includes(q) || r.perwalian?.toLowerCase().includes(q)
+      );
+      renderTable(filtered);
+    }
+
+    // ── Export CSV ─────────────────────────────
+    function exportCSV() {
+      if (!semuaData.length) { alert('Tidak ada data untuk diekspor.'); return; }
+      const header = 'No,Nama,Perwalian,Waktu Absen,Status';
+      const rows   = semuaData.map((r, i) =>
+        `${i+1},"${r.nama}","${r.perwalian || ''}","${r.waktu || ''}","Hadir"`
+      ).join('\n');
+      const blob = new Blob([header + '\n' + rows], { type: 'text/csv;charset=utf-8;' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href = url; a.download = 'absensi-' + now.toISOString().slice(0,10) + '.csv';
+      a.click(); URL.revokeObjectURL(url);
+    }
+
+    // Auto refresh setiap 60 detik
+    setInterval(() => {
+      if (document.getElementById('dashboard').style.display === 'block') muatData();
+    }, 60000);
+  </script>
+</body>
+</html>
